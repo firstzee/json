@@ -54,7 +54,7 @@ struct Get<S, typename std::enable_if<
     static void get(S& s, const ptree& pt, const std::string& node_name) {
         auto& node = pt.get_child(node_name);
         s.reserve(node.size());
-        for(const auto& v: pt.get_child(node_name)) {
+        for(const auto& v: node) {
             typename S::value_type value;
             Get<typename S::value_type>::get(value, v.second, "");
             s.emplace_back(std::move(value));
