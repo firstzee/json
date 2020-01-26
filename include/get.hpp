@@ -89,9 +89,8 @@ struct Get<std::optional<S>> {
 
 template <typename S, std::size_t I>
 void get(S& s, const ptree& pt) {
-    using TypeValue = typename result_of::value_at<S, boost::mpl::int_<I>>::type;
-    auto node_name = extension::struct_member_name<S, I>::call();
-    Get<TypeValue>::get(at_c<I>(s), pt, node_name);
+    Get<typename result_of::value_at<S, boost::mpl::int_<I>>::type>::get(
+        at_c<I>(s), pt, extension::struct_member_name<S, I>::call());
 }
 
 template <typename S, std::size_t... Is>
