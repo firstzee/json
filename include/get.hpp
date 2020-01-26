@@ -14,8 +14,8 @@ namespace deserialize::details {
 using namespace boost::property_tree;
 using namespace boost::fusion;
 
-template <typename S, std::size_t... Is>
-void get_sequence(S&, const ptree&, std::index_sequence<Is...>);
+template <typename S>
+void get_sequence(S&, const ptree&);
 
 template <class S, class T = void>
 struct Get {
@@ -42,8 +42,7 @@ struct Get<S, typename std::enable_if<
     static void get(S& s, const ptree& pt, const std::string& node_name) {
         get_sequence(
             s,
-            pt.get_child(node_name), 
-            std::make_index_sequence<result_of::size<S>::type::value>{}
+            pt.get_child(node_name)
         );
     }
 };
@@ -94,8 +93,13 @@ void get(S& s, const ptree& pt) {
 }
 
 template <typename S, std::size_t... Is>
-void get_sequence(S& s, const ptree& pt, std::index_sequence<Is...>) {
+void get(S& s, const ptree& pt, std::index_sequence<Is...>) {
     (get<S, Is>(s, pt), ...);
+}
+
+template <typename S>
+void get_sequence(S& s, const ptree& pt) {
+    get(s, pt, std::make_index_sequence<boost::fusion::result_of::size<S>::type::value>{});
 }
 
 }
