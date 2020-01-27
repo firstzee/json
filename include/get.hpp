@@ -52,9 +52,9 @@ struct Get<S, typename std::enable_if<
         traits::is_vector_v<S>
 >::type> {
     static void get(S& s, const ptree& pt, const std::string& node_name) {
-        auto& node = pt.get_child(node_name);
+        const auto& node = pt.get_child(node_name);
         s.reserve(node.size());
-        for(const auto& v: node) {
+        for (const auto& v: node) {
             typename S::value_type value;
             Get<typename S::value_type>::get(value, v.second, "");
             s.emplace_back(std::move(value));
@@ -67,7 +67,7 @@ struct Get<S, typename std::enable_if<
         traits::is_map_v<S>
 >::type> {
     static void get(S& s, const ptree& pt, const std::string& node_name) {
-        for(const auto& v: pt.get_child(node_name)) {
+        for (const auto& v: pt.get_child(node_name)) {
             typename S::mapped_type value;
             Get<typename S::mapped_type>::get(value, v.second, "");
             s.emplace(v.first, std::move(value));
@@ -81,20 +81,15 @@ struct Get<std::optional<S>> {
         try {
             s = S {};
             Get<S>::get(*s, pt, node_name);
-        } catch(const ptree_error&) {
+        } catch (const ptree_error&) {
         }
     }
 };
 
-template <typename S, std::size_t I>
-void get(S& s, const ptree& pt) {
-    Get<typename result_of::value_at<S, boost::mpl::int_<I>>::type>::get(
-        at_c<I>(s), pt, extension::struct_member_name<S, I>::call());
-}
-
 template <typename S, std::size_t... Is>
 void get(S& s, const ptree& pt, std::index_sequence<Is...>) {
-    (get<S, Is>(s, pt), ...);
+    (Get<typename result_of::value_at<S, boost::mpl::int_<Is>>::type>::get(at_c<Is>(s), pt,
+        extension::struct_member_name<S, Is>::call()), ...);
 }
 
 template <typename S>
