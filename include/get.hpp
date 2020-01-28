@@ -18,10 +18,12 @@ template <typename S>
 void get_sequence(S&, const ptree&);
 
 template <class S>
-void get(S& s, const ptree& pt, const std::string& node_name, 
-        typename std::enable_if<std::is_floating_point_v<S> ||
-        std::is_integral_v<S> ||
-        traits::is_string_v<S>>::type* = 0
+void get(S& s, const ptree& pt, const std::string& node_name,
+        typename std::enable_if<
+            std::is_floating_point_v<S> ||
+            std::is_integral_v<S> ||
+            traits::is_string_v<S>
+        >::type* = 0
 ) {
     s = pt.get<S>(node_name);
 }
