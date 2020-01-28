@@ -17,79 +17,59 @@ using namespace boost::fusion;
 template <typename S>
 void get_sequence(S&, const ptree&);
 
-template <class S, class T = void>
-struct Get {
-    static void get(S&, const ptree&, const std::string&) {
-        static_assert(std::is_integral_v<S>, "Not implemented yet");
-    }
-};
-
 template <class S>
-struct Get<S, typename std::enable_if<
-        std::is_floating_point_v<S> ||
+void get(S& s, const ptree& pt, const std::string& node_name, 
+        typename std::enable_if<std::is_floating_point_v<S> ||
         std::is_integral_v<S> ||
-        traits::is_string_v<S>
->::type> {
-    static void get(S& s, const ptree& pt, const std::string& node_name) {
-        s = pt.get<S>(node_name);
-    }
-};
+        traits::is_string_v<S>>::type* = 0
+) {
+    s = pt.get<S>(node_name);
+}
 
 template <class S>
-struct Get<S, typename std::enable_if<
-        boost::fusion::traits::is_sequence<S>::value
->::type> {
-    static void get(S& s, const ptree& pt, const std::string& node_name) {
-        get_sequence(
-            s,
-            pt.get_child(node_name)
-        );
-    }
-};
+void get(S& s, const ptree& pt, const std::string& node_name,
+        typename std::enable_if<boost::fusion::traits::is_sequence<S>::value>::type* = 0) {
+    get_sequence(
+        s,
+        pt.get_child(node_name)
+    );
+}
 
 template <class S>
-struct Get<S, typename std::enable_if<
-        traits::is_vector_v<S>
->::type> {
-    static void get(S& s, const ptree& pt, const std::string& node_name) {
-        const auto& node = pt.get_child(node_name);
-        s.reserve(node.size());
-        for (const auto& v: node) {
-            typename S::value_type value;
-            Get<typename S::value_type>::get(value, v.second, "");
-            s.emplace_back(std::move(value));
-        }
+void get(S& s, const ptree& pt, const std::string& node_name,
+        typename std::enable_if<traits::is_vector_v<S>>::type* = 0) {
+    const auto& node = pt.get_child(node_name);
+    s.reserve(node.size());
+    for (const auto& v: node) {
+        typename S::value_type value;
+        get(value, v.second, "");
+        s.emplace_back(std::move(value));
     }
-};
+}
 
 template <class S>
-struct Get<S, typename std::enable_if<
-        traits::is_map_v<S>
->::type> {
-    static void get(S& s, const ptree& pt, const std::string& node_name) {
-        for (const auto& v: pt.get_child(node_name)) {
-            typename S::mapped_type value;
-            Get<typename S::mapped_type>::get(value, v.second, "");
-            s.emplace(v.first, std::move(value));
-        }
+void get(S& s, const ptree& pt, const std::string& node_name,
+        typename std::enable_if<traits::is_map_v<S>>::type* = 0) {
+    for (const auto& v: pt.get_child(node_name)) {
+        typename S::mapped_type value;
+        get(value, v.second, "");
+        s.emplace(v.first, std::move(value));
     }
-};
+}
 
 template <class S>
-struct Get<std::optional<S>> {
-    static void get(std::optional<S>& s, const ptree& pt, const std::string& node_name) {
-        try {
-            s = S {};
-            Get<S>::get(*s, pt, node_name);
-        } catch (const ptree_error&) {
-        }
+void get(S& s, const ptree& pt, const std::string& node_name,
+        typename std::enable_if<traits::is_optional_v<S>>::type* = 0) {
+    try {
+        s = typename S::value_type {};
+        get(*s, pt, node_name);
+    } catch (const ptree_error&) {
     }
-};
+}
 
 template <typename S, std::size_t... Is>
 void get(S& s, const ptree& pt, std::index_sequence<Is...>) {
-    (Get<typename result_of::value_at<S, boost::mpl::int_<Is>>::type>::get(at_c<Is>(s), pt,
-        extension::struct_member_name<S, Is>::call()), ...);
+    (get(at_c<Is>(s), pt, extension::struct_member_name<S, Is>::call()), ...);
 }
 
 template <typename S>

@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <optional>
 
 namespace deserialize::traits {
 
@@ -33,5 +34,14 @@ struct is_string<std::basic_string<T, Traits, Alloc>> : std::true_type {};
 
 template <typename T>
 constexpr bool is_string_v = is_string<T>::value;
+
+template <typename T>
+struct is_optional: std::false_type {};
+
+template <class T>
+struct is_optional<std::optional<T>> : std::true_type {};
+
+template <typename T>
+constexpr bool is_optional_v = is_optional<T>::value;
 
 }
