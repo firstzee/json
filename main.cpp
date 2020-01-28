@@ -1,4 +1,4 @@
-#include <deserialize.hpp>
+#include <deserialize/from_json.hpp>
 
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -31,7 +31,7 @@ BOOST_FUSION_ADAPT_STRUCT(A,
 
 int main() {
     A a;
-    deserialize::fromJson(
+    deserialize::from_json(
         a,
         R"({"date": "26.01.2010", "rooms": {"hall": {"x": 1, "y": 2}, "kitchen": {"x": 3, "y": 4}}, "owners": ["tu", "mu"]})"
     );
