@@ -44,4 +44,7 @@ struct is_optional<std::optional<T>> : std::true_type {};
 template <typename T>
 constexpr bool is_optional_v = is_optional<T>::value;
 
+template<bool B, typename T = void>
+using enable_if_t = typename std::enable_if<B, T>::type;
+
 }
