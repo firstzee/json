@@ -12,24 +12,51 @@ namespace deserialize::details {
 
 using namespace boost::property_tree;
 using namespace boost::fusion;
+using namespace json::traits;
 
 template <typename S>
 void get_sequence(S&, const ptree&);
 
 template <class S>
-void get(S& s, const ptree& pt, const std::string& node_name,
-        traits::enable_if_t<
+void get(S& s, const ptree&, const std::string&,
+        enable_if_t<
             std::is_floating_point_v<S> ||
             std::is_integral_v<S> ||
-            traits::is_string_v<S>
+            is_string_v<S>
         >* = 0
+);
+
+template <class S>
+void get(S& s, const ptree&, const std::string&,
+        enable_if_t<traits::is_sequence<S>::value>* = 0);
+
+template <class S>
+void get(S& s, const ptree&, const std::string&,
+        enable_if_t<is_vector_v<S>>* = 0);
+
+template <class S>
+void get(S& s, const ptree&, const std::string&,
+        enable_if_t<is_map_v<S>>* = 0);
+
+template <class S>
+void get(S& s, const ptree&, const std::string&,
+        enable_if_t<is_optional_v<S>>* = 0);
+
+
+template <class S>
+void get(S& s, const ptree& pt, const std::string& node_name,
+        enable_if_t<
+            std::is_floating_point_v<S> ||
+            std::is_integral_v<S> ||
+            is_string_v<S>
+        >*
 ) {
     s = pt.get<S>(node_name);
 }
 
 template <class S>
 void get(S& s, const ptree& pt, const std::string& node_name,
-        traits::enable_if_t<boost::fusion::traits::is_sequence<S>::value>* = 0) {
+        enable_if_t<traits::is_sequence<S>::value>*) {
     get_sequence(
         s,
         pt.get_child(node_name)
@@ -38,7 +65,7 @@ void get(S& s, const ptree& pt, const std::string& node_name,
 
 template <class S>
 void get(S& s, const ptree& pt, const std::string& node_name,
-        traits::enable_if_t<traits::is_vector_v<S>>* = 0) {
+        enable_if_t<is_vector_v<S>>*) {
     const auto& node = pt.get_child(node_name);
     s.reserve(node.size());
     for (const auto& v: node) {
@@ -50,7 +77,7 @@ void get(S& s, const ptree& pt, const std::string& node_name,
 
 template <class S>
 void get(S& s, const ptree& pt, const std::string& node_name,
-        traits::enable_if_t<traits::is_map_v<S>>* = 0) {
+        enable_if_t<is_map_v<S>>*) {
     for (const auto& v: pt.get_child(node_name)) {
         typename S::mapped_type value;
         get(value, v.second, "");
@@ -60,7 +87,7 @@ void get(S& s, const ptree& pt, const std::string& node_name,
 
 template <class S>
 void get(S& s, const ptree& pt, const std::string& node_name,
-        traits::enable_if_t<traits::is_optional_v<S>>* = 0) {
+        enable_if_t<is_optional_v<S>>*) {
     try {
         s = typename S::value_type {};
         get(*s, pt, node_name);

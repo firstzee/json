@@ -8,28 +8,54 @@
 
 #include <type_traits>
 
-namespace deserialize::details {
+namespace serialize::details {
 
 using namespace boost::property_tree;
 using namespace boost::fusion;
+using namespace json::traits;
+
+template <class S>
+void put(const S&, ptree&, const std::string&,
+        enable_if_t<
+            std::is_floating_point_v<S> ||
+            std::is_integral_v<S> ||
+            is_string_v<S>
+        >* = 0
+);
+
+template <class S>
+void put(const S&, ptree&, const std::string&,
+        enable_if_t<traits::is_sequence<S>::value>* = 0);
+
+template <class S>
+void put(const S&, ptree&, const std::string&,
+        enable_if_t<is_vector_v<S>>* = 0);
+
+template <class S>
+void put(const S&, ptree&, const std::string&,
+        enable_if_t<is_map_v<S>>* = 0);
+
+template <class S>
+void put(const S&, ptree&, const std::string&,
+        enable_if_t<is_optional_v<S>>* = 0);
 
 template <typename S>
 void put_sequence(const S&, ptree&);
 
 template <class S>
 void put(const S& s, ptree& pt, const std::string& node_name,
-        traits::enable_if_t<
+        enable_if_t<
             std::is_floating_point_v<S> ||
             std::is_integral_v<S> ||
-            traits::is_string_v<S>
-        >* = 0
+            is_string_v<S>
+        >*
 ) {
     pt.put(node_name, s);
 }
 
 template <class S>
 void put(const S& s, ptree& pt, const std::string& node_name,
-        traits::enable_if_t<boost::fusion::traits::is_sequence<S>::value>* = 0) {
+        enable_if_t<traits::is_sequence<S>::value>*) {
     ptree child;
     put_sequence(
         s,
@@ -40,7 +66,7 @@ void put(const S& s, ptree& pt, const std::string& node_name,
 
 template <class S>
 void put(const S& s, ptree& pt, const std::string& node_name,
-        traits::enable_if_t<traits::is_vector_v<S>>* = 0) {
+        enable_if_t<is_vector_v<S>>*) {
     ptree array;
     for (const auto& v: s) {
         ptree el;
@@ -52,7 +78,7 @@ void put(const S& s, ptree& pt, const std::string& node_name,
 
 template <class S>
 void put(const S& s, ptree& pt, const std::string& node_name,
-        traits::enable_if_t<traits::is_map_v<S>>* = 0) {
+        enable_if_t<is_map_v<S>>*) {
     ptree map;
     for (const auto& v: s) {
         put(v.second, map, v.first);
@@ -62,7 +88,7 @@ void put(const S& s, ptree& pt, const std::string& node_name,
 
 template <class S>
 void put(const S& s, ptree& pt, const std::string& node_name,
-        traits::enable_if_t<traits::is_optional_v<S>>* = 0) {
+        enable_if_t<is_optional_v<S>>*) {
     if (s) {
        put(*s, pt, node_name);
     }

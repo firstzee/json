@@ -6,7 +6,7 @@
 #include <string>
 #include <optional>
 
-namespace deserialize::traits {
+namespace json::traits {
 
 template <typename T>
 struct is_vector: std::false_type {};

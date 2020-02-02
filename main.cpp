@@ -43,6 +43,8 @@ int main() {
     for(auto& owner: a.owners) {
         std::cout << owner << std::endl;
     }
-    std::cout << deserialize::to_json(a);
+    std::string json;
+    serialize::to_json(a, json);
+    std::cout << json;
     return 1;
 }
