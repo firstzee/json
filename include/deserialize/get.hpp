@@ -1,4 +1,4 @@
-#include <deserialize/traits.hpp>
+#include <common/traits.hpp>
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/fusion/include/size.hpp>

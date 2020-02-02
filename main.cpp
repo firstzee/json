@@ -1,4 +1,5 @@
 #include <deserialize/from_json.hpp>
+#include <serialize/to_json.hpp>
 
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -42,5 +43,6 @@ int main() {
     for(auto& owner: a.owners) {
         std::cout << owner << std::endl;
     }
+    std::cout << deserialize::to_json(a);
     return 1;
 }
