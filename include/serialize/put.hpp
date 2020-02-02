@@ -55,9 +55,7 @@ void put(const S& s, ptree& pt, const std::string& node_name,
         traits::enable_if_t<traits::is_map_v<S>>* = 0) {
     ptree map;
     for (const auto& v: s) {
-        ptree el;
-        put(v.second, el, "");
-        map.push_back(std::make_pair(v.first, el));
+        put(v.second, map, v.first);
     }
     pt.add_child(node_name, map);
 }
